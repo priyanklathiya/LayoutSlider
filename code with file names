@@ -1,0 +1,513 @@
+youtube link : https://www.youtube.com/watch?v=lgFKCxU9BVU (Welcome Screen Slider with ViewPaer in Android Studio)
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+STEP 1 : app > res > values > colors.xml
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#59128e</color>
+    <color name="colorPrimaryDark">#381354</color>
+    <color name="colorAccent">#03DAC5</color>
+    <color name="whiteColor">#fff</color>
+    <color name="blackColor">#000</color>
+    <color name="lightOrangeColor">#fed8b1</color>
+    <color name="lightPinkColor">#FFB6C1</color>
+    <color name="lightGreenColor">#90EE90</color>
+    <color name="lightPurpleColor">#b19cd9</color>
+</resources>
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+STEP 2 :  app > res > values > strings.xml
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<resources>
+    <string name="app_name">Image Slider</string>
+    <string name="finance">FINANCE</string>
+    <string name="tv_finance_1">this is simple and awesome notepad app. It gives you a quick notes, memos, emails, messages, shopping lists and to-do lists.</string>
+    <string name="business">BUSINESS</string>
+    <string name="meeting">MEETING</string>
+    <string name="resources">RESOURCES</string>
+    <string name="next">NEXT</string>
+    <string name="skip">SKIP</string>
+</resources> 
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+STEP 3 : activity_main.xml
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <androidx.viewpager.widget.ViewPager
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/viewPager" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        android:id="@+id/dotsLayout" />
+    
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:alpha=".5"
+        android:background="@color/whiteColor"
+        android:id="@+id/view"
+        android:layout_above="@id/dotsLayout" />
+    
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_next"
+        android:background="@null"
+        android:text="@string/next"
+        android:layout_margin="4dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_skip"
+        android:background="@null"
+        android:text="@string/skip"
+        android:layout_margin="4dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+</RelativeLayout>
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+STEP 4 : adapter - MyAdapter.java
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+package com.example.imageslider;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.viewpager.widget.PagerAdapter;
+
+public class MyAdapter extends PagerAdapter {
+    private LayoutInflater inflater;
+    int[] layouts;
+    Context context;
+
+    public MyAdapter(int[] layouts, Context context) {
+        this.layouts = layouts;
+        this.context = context;
+    }
+
+    @Override
+    public int getCount() {
+        return layouts.length;
+    }
+
+    @Override
+    public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
+        return view == object;
+    }
+
+    @NonNull
+    @Override
+    public Object instantiateItem(@NonNull ViewGroup container, int position) {
+        inflater = (LayoutInflater)context.getSystemService(context.LAYOUT_INFLATER_SERVICE);
+        View v = inflater.inflate(layouts[position], container, false);
+        container.addView(v);
+        return v;
+    }
+
+    @Override
+    public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+        View v = (View)object;
+        container.removeView(v);
+    }
+}
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+STEP 5 : MainActivity.java
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+package com.example.imageslider;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
+
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.os.Build;
+import android.os.Bundle;
+import android.text.Html;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+public class MainActivity extends AppCompatActivity {
+
+    ActionBar actionBar;
+    ViewPager viewPager;
+    LinearLayout linearLayout;
+    TextView[] dostTV;
+    int[] layouts;
+    Button mNextbtn, mSkipbtn;
+    MyAdapter myAdapter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        if (!isFirstTimeAppStart()){
+            setAppStartStatus(false);
+            startActivity(new Intent(MainActivity.this,HomeActivity.class));
+            finish();
+        }
+
+        actionBar = getSupportActionBar();
+        if (actionBar != null){
+            actionBar.hide();
+        }
+
+        viewPager = findViewById(R.id.viewPager);
+        linearLayout = findViewById(R.id.dotsLayout);
+        mNextbtn = findViewById(R.id.btn_next);
+        mSkipbtn = findViewById(R.id.btn_skip);
+
+        statusBarTransparent();
+
+        mSkipbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setAppStartStatus(false);
+                startActivity(new Intent(MainActivity.this,HomeActivity.class));
+                finish();
+            }
+        });
+
+        mNextbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int currentPage = viewPager.getCurrentItem()+1;
+                if (currentPage < layouts.length) {
+                    viewPager.setCurrentItem(currentPage);
+
+                }
+                else {
+                    setAppStartStatus(false);
+                    startActivity(new Intent(MainActivity.this,HomeActivity.class));
+                    finish();
+                }
+            }
+        });
+
+        layouts = new int[] {
+                R.layout.slide_1,
+                R.layout.slide_2,
+                R.layout.slide_3,
+                R.layout.slide_4
+        };
+        myAdapter = new MyAdapter(layouts, getApplicationContext());
+        viewPager.setAdapter(myAdapter);
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if (position == layouts.length-1){
+                    mNextbtn.setText("START");
+                    mSkipbtn.setVisibility(View.GONE);
+                }
+                else {
+                    mNextbtn.setText("NEXT");
+                    mSkipbtn.setVisibility(View.VISIBLE);
+                }
+                setDots(position);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+        setDots(0);
+    }
+
+    private boolean isFirstTimeAppStart(){
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("SLIDER APP", Context.MODE_PRIVATE);
+        return pref.getBoolean("APP_START",true);
+    }
+
+    private void setAppStartStatus(boolean status) {
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("SLIDER APP", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean("APP_START",status);
+        editor.apply();
+    }
+
+    private void statusBarTransparent() {
+        if (Build.VERSION.SDK_INT >= 21){
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE|View.SYSTEM_UI_FLAG_FULLSCREEN);
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(Color.TRANSPARENT);
+        }
+    }
+
+    private void setDots(int page){
+        linearLayout.removeAllViews();
+        dostTV = new TextView[layouts.length];
+        for (int i = 0;i < dostTV.length; i++){
+            dostTV[i] = new TextView(this);
+            dostTV[i].setText(Html.fromHtml("&#8226;"));
+            dostTV[i].setTextSize(30);
+            dostTV[i].setTextColor(Color.parseColor("#a9b4bb"));
+            linearLayout.addView(dostTV[i]);
+        }
+        if (dostTV.length > 0){
+            dostTV[page].setTextColor(Color.parseColor("#ffffff"));
+        }
+    }
+}
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+STEP 6 : slide_1.xml
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/lightOrangeColor"
+    android:gravity="center">
+
+    <ImageView
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:src="@drawable/finance"
+        android:fitsSystemWindows="true"
+        android:layout_gravity="center"
+        android:background="@null"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/finance"
+        android:gravity="center"
+        android:textSize="28sp"
+        android:textColor="@color/whiteColor"
+        android:textStyle="bold"
+        android:layout_marginTop="4dp"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/tv_finance_1"
+        android:textColor="@color/whiteColor"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        />
+
+</LinearLayout>
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+STEP 7 : slide_2.xml
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/lightPinkColor"
+    android:gravity="center">
+
+    <ImageView
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:src="@drawable/business"
+        android:fitsSystemWindows="true"
+        android:layout_gravity="center"
+        android:background="@null" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/business"
+        android:gravity="center"
+        android:textSize="28sp"
+        android:textColor="@color/whiteColor"
+        android:textStyle="bold"
+        android:layout_marginTop="4dp"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/tv_finance_1"
+        android:textColor="@color/whiteColor"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        />
+
+</LinearLayout>
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+STEP 8 : slide_3.xml
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/lightGreenColor"
+    android:gravity="center">
+
+    <ImageView
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:src="@drawable/meeting"
+        android:fitsSystemWindows="true"
+        android:layout_gravity="center"
+        android:background="@null"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/meeting"
+        android:gravity="center"
+        android:textSize="28sp"
+        android:textColor="@color/whiteColor"
+        android:textStyle="bold"
+        android:layout_marginTop="4dp"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/tv_finance_1"
+        android:textColor="@color/whiteColor"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        />
+
+</LinearLayout>
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+STEP 9 : slide_4.xml
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/lightPurpleColor"
+    android:gravity="center">
+
+    <ImageView
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:src="@drawable/resources"
+        android:fitsSystemWindows="true"
+        android:layout_gravity="center"
+        android:background="@null"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/resources"
+        android:gravity="center"
+        android:textSize="28sp"
+        android:textColor="@color/whiteColor"
+        android:textStyle="bold"
+        android:layout_marginTop="4dp"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/tv_finance_1"
+        android:textColor="@color/whiteColor"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        />
+
+</LinearLayout>
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+STEP 10 : activty.home
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".HomeActivity"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Another Avtivity"
+        android:gravity="center"
+        android:textSize="28sp"
+        android:textColor="@color/blackColor"
+        android:textStyle="bold" />
+    
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:src="@drawable/welcome"
+        android:layout_gravity="center"
+        android:layout_marginTop="4dp"
+        android:fitsSystemWindows="true" />
+
+</LinearLayout>
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+STEP 11 : MainActivity.java
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+package com.example.imageslider;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Bundle;
+
+public class HomeActivity extends AppCompatActivity {
+
+    ActionBar actionBar;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_home);
+
+        actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle("Home Activity");
+        }
+    }
+}
